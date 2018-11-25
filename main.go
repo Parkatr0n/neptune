@@ -10,6 +10,8 @@ import (
     "strings"
 
     "github.com/fatih/color"
+
+    "./hyper"
 )
 
 var (
@@ -39,7 +41,7 @@ func main() {
 
     cmd := input()
 
-    fmt.Println(cmd)
+    // now we get to test our networking bullshit
 }
 
 func parseCommand(s string) {
