@@ -8,14 +8,25 @@ import (
 )
 
 func main() {
-    fmt.Println("Starting: sending 'hello world' (in a packet)")
+    usn := "Park"
+    psk := "hunter2"
 
     pack := hyper.Packet{}
 
-    pack.PackInt(35)
-    pack.PackInt(64)
+    pack.PackString(usn)
+    pack.PackString(psk)
 
     // Send it
-    location := "localhost"
-    hyper.SendPacket(pack, location)
+    hyper.SendPacket(pack, "localhost")
+
+    // Wait for information to come back
+    data := hyper.WaitFor()
+
+    rpack := hyper.Decode(data)
+    info := rpack.Unpack()
+
+    answer := info[0]
+
+    // Answer will be "Yes" or "No" to whether we can logon
+    fmt.Println(answer)
 }

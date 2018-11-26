@@ -7,6 +7,7 @@ package hyper
 
 // Imports
 import (
+    "strings"
     "strconv"
 
     "errors"
@@ -51,7 +52,7 @@ func (this *Packet) PackString(data string) {
     convert := []byte(information)
 
     for i := range convert {
-        fmt.Println(i)
+        this.data = append(this.data, convert[i])
     }
     // this.data = append(this.data, convert)
 }
@@ -81,13 +82,48 @@ func (this *Packet) Separate() [][]byte {
     return split
 }
 
+func (this *Packet) SSep() []string {
+    return strings.Split(string(this.data), escape)
+}
+
+func TrimBytes(data []byte) []byte {
+    return bytes.Trim(data, "\x00")
+}
+
+func Trim(data string) string {
+    return string(TrimBytes([]byte(data)))
+}
+
 /*
 
 The Unpack.
 
 */
-func Unpack() {
-    
+func (this *Packet) Unpack() []interface{} {
+    // unpack
+    split := this.SSep() // bytes
+
+    result := make([]interface{}, 0)
+
+    for i := 1; i < len(split); i++ {
+        s := string(split[i])
+
+        char := string(s[0])
+
+        rest := s[1:]
+
+        if char == int_char {
+            // take out an int
+            trim := Trim(rest)
+            conv, err := strconv.Atoi(trim)
+            fmt.Println(err)
+            result = append(result, conv)
+        } else if char == string_char {
+            result = append(result, rest)
+        }
+    }
+
+    return result
 }
 
 // The problem with unpacking is that we don't know what the next thing is going
