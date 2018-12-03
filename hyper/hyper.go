@@ -2,7 +2,15 @@
 package hyper
 
 import (
+    _ "fmt"
     "net"
+
+    _ "reflect"
+
+    "strconv"
+    "strings"
+
+    "bytes"
 )
 
 const (
@@ -20,15 +28,78 @@ func Send(data []byte, location string) {
     //  the data following is unpackable.
     data = append([]byte("notp"), data...)
     conn.Write(data)
+
+}
+
+func ReceivePacket() Packet {
+    pc, _ := net.ListenPacket("udp", "localhost:" + port)
+
+    buffer := make([]byte, 1024)
+    pc.ReadFrom(buffer)
+
+    // Alright, now that we have the data, we need to turn it into a Packet
+    packet := NewPacket()
+
+    // Split the packet by the escape character
+    escape := "/"
+    data := string(bytes.Trim(buffer, "\x00")) // convert the []byte buffer to a string
+
+    split := strings.Split(data, escape)
+
+    for i, val := range split {
+        if i == 0 { continue }
+        valsplit := strings.Split(val, ":")
+        typeof := valsplit[0]
+        name := valsplit[1]
+
+        switch (typeof) {
+        case "int":
+            num, _ := strconv.Atoi(valsplit[2])
+            packet.Pack(name, num)
+        case "string":
+            packet.Pack(name, valsplit[2])
+        default:
+            packet.Pack(name, "ERR" + valsplit[2])
+        }
+    }
+
+    pc.Close()
+
+    return packet
 }
 
 func SendPacket(pack Packet, location string) {
-    data := append([]byte("pack"), pack.data...)
+    data := pack.Data
+    datastr := "pack"
+
+    escape := "/"
+
+    // Convert all of the Packet's data into a byte slice to send
+    for key, value := range data {
+        typeof := ""
+
+        topack := ""
+
+        switch v := value.(type) {
+        case int:
+            topack = strconv.Itoa(v)
+            typeof = "int"
+            break
+        case string:
+            topack = v
+            typeof = "string"
+            break
+        }
+
+        datastr += escape + typeof + ":" + key + ":" + topack
+    }
+
+    rawdata := []byte(datastr)
 
     conn, _ := net.Dial("udp", location + ":" + port)
-    defer conn.Close()
+    conn.Write(rawdata)
 
-    conn.Write(data)
+    conn.Close()
 }
 
 func WaitFor() []byte {
@@ -41,20 +112,4 @@ func WaitFor() []byte {
     pc.ReadFrom(buffer)
 
     return buffer
-}
-
-/* Decode */
-// Decode turns the information we received into packet that can be unpacked.
-func Decode(data []byte) Packet {
-    // Remove "pack" from the start of the string
-    data = data[4:] // ignore this temporary code that does the job
-
-    // Create a packet
-    pack := Packet{}
-
-    // Put the data in the packet
-    pack.data = data
-
-    // Return the newly created packet
-    return pack
 }
