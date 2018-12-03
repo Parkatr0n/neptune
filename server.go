@@ -5,20 +5,28 @@ import (
     "fmt"
 
     "./hyper"
-
-    _ "reflect"
-
-    _ "bytes"
 )
 
 func main() {
-    fmt.Println("Starting server. Waiting for messages")
+    fmt.Println("starting")
 
-    // Constantly listen for messages
     for {
-        pack := hyper.ReceivePacket()
+        packet := hyper.ReceivePacket()
 
-        fmt.Println(pack.Unpack("value"))
-        fmt.Println(pack.Unpack("thing"))
+        usn := packet.Unpack("usn")
+        psk := packet.Unpack("psk")
+
+        fmt.Println(usn, psk)
+
+        answer := "No"
+
+        if usn == "Park" && psk == "hunter2" {
+            answer = "Yes"
+        }
+
+        packet.Pack("answer", answer)
+
+        // send the answer
+        hyper.SendPacket(packet, "localhost")
     }
 }

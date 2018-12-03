@@ -2,10 +2,7 @@
 package hyper
 
 import (
-    _ "fmt"
     "net"
-
-    _ "reflect"
 
     "strconv"
     "strings"

@@ -19,13 +19,6 @@ var escape string = "[*^}"
 // var escapeb []byte{0, 32, 41, 255, 210}
 
 // Here is the declaration of all of the characters mentioned above.
-var (
-    string_char = "s"
-    bytes_char = "B"
-    bool_char = "b"
-    int_char = "i"
-)
-
 type Packet struct {
     Data map[string]interface{}
 }

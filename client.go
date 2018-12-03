@@ -2,16 +2,25 @@
 package main
 
 import (
-    _ "fmt"
-
+    "fmt"
     "./hyper"
 )
 
 func main() {
-    pack := hyper.NewPacket()
+    // Declare our info
+    usn := "Park"
+    psk := "hunter2"
 
-    pack.Pack("value", 80)
-    pack.Pack("thing", "teststr")
+    packet := hyper.NewPacket()
 
-    hyper.SendPacket(pack, "localhost")
+    packet.Pack("usn", usn)
+    packet.Pack("psk", psk)
+
+    hyper.SendPacket(packet, "localhost")
+
+    // Receive the packet
+    p := hyper.ReceivePacket()
+
+    ans := p.Unpack("answer")
+    fmt.Println(ans)
 }
